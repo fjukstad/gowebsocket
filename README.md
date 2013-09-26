@@ -24,7 +24,7 @@ c := gowebsocket.NewClient(ip,port)
 for {
   c.Send("Hello there\n")
   recv := c.Receive()
-  fmt.Println(Received: ", recv)
+  fmt.Println("Received: ", recv)
 }
 ```
 

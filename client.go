@@ -31,7 +31,7 @@ func (c *Client) Send (message string) {
     c.SendBytes(msg) 
 }
 
-func (c *client) SendBytes(message []byte) {
+func (c *Client) SendBytes(message []byte) {
     if _, err := c.Conn.Write(message); err != nil {
         log.Panic("Message", message," could not be sent", err)
     }

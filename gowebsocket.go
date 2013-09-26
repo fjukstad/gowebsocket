@@ -38,8 +38,10 @@ var h = hub {
 func (h *hub) Run(){
     for {
         select {
+            
             // Register new connection
             case c:= <-h.register:
+                log.Print("Registered...")
                 h.connections[c] = true
 
             // Unregister connection
@@ -59,7 +61,8 @@ func (h *hub) Run(){
                             close(c.send)
                             go c.conn.Close() 
                     }
-                }   
+                }
+                
         }
     }
 }
@@ -74,21 +77,24 @@ type connection struct {
 
 }
 
-func (c *connection) reader() {
+func (c *connection) reader(h *hub) {
     for {
+        log.Print("INCOMFING")
         var message [1000]byte
         n, err := c.conn.Read(message[:])
         if err != nil{
             break
         }
+        log.Print("Got message", message)
         h.broadcast <- string(message[:n])
     }
     c.conn.Close()
 }
 
 
-func (c *connection) writer() {
+func (c *connection) writer(h *hub) {
     for message := range c.send{
+        log.Print("Sending message: ", message)
         err := websocket.Message.Send(c.conn, message)
         if err != nil {
             break
@@ -96,45 +102,51 @@ func (c *connection) writer() {
     }
 }
 
-func connHandler(conn *websocket.Conn){
-    c := &connection{send: make(chan string, 256), conn: conn}
-    h.register <- c
+func (s *WSServer) connHandler(conn *websocket.Conn){
+    log.Print("conn..")
+    s.Conn = &connection{send: make(chan string, 256), conn: conn}
+    log.Print("c:", s.Conn)
+    s.Hub.register <- s.Conn
     defer func() {
-        h.unregister <- c
+        s.Hub.unregister <- s.Conn
     }() 
     
-    go c.writer()
-    c.reader()
+    go s.Conn.writer(s.Hub)
+    s.Conn.reader(s.Hub)
 }
 
 
-type Server struct {
+type WSServer struct {
     Hub *hub
     Server *http.Server
+    Conn *connection
 }
 
-func New (ip, port string) (s *Server) {
-    s = new(Server) 
+func New (ip, port string) (s *WSServer) {
+    s = new(WSServer) 
+
     s.Hub  =  &hub {
         connections:    make(map[*connection] bool),
         broadcast:      make(chan string),
         register:       make(chan *connection),
         unregister:     make(chan *connection),
     }
+
+
     // s.Server = new(http.Server) 
     s.Server = &http.Server{
         Addr: ip+port,
-        Handler: websocket.Handler(connHandler),
+        Handler: websocket.Handler(s.connHandler),
     }
-
     
     return s
 }
 
-func (s *Server) Start() {
+func (s *WSServer) Start() {
     go s.Hub.Run() 
 
     go func () {
+        http.Handle("/ws", s.Server.Handler)
         err := s.Server.ListenAndServe();
         if err != nil {
             log.Panic("Websocket server could not start") 
@@ -143,42 +155,4 @@ func (s *Server) Start() {
     log.Print("Websocket server started successfully. Go have fun! ") 
 }
 
-
-
-/*
-func Start(ip, port string) {
-    address := ip+port
-    
-    go h.run() 
-    http.Handle("/", websocket.Handler(connHandler))
-    if err := http.ListenAndServe(address, nil); err != nil{
-        log.Panic("gowebsocket could not start: ", err)
-    }
-
-}
-*/
-
-
-
-/*
-func main() {
-    
-    // cmd line flags
-    var ip = flag.String("ip", "localhost", "ip to run on")
-    var port = flag.String("port", ":3999" ,"port to run on")
-    flag.Parse() 
-
-    address := *ip + *port
-
-
-    log.Println("Websocket broadcaster started on", address)
-
-    go h.run()
-    http.Handle("/", websocket.Handler(connHandler))
-
-    if err := http.ListenAndServe(address, nil); err != nil {
-        log.Panic("ListenAndServe:", err)
-    }
-}
-*/
 

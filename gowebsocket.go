@@ -41,7 +41,6 @@ func (h *hub) Run(){
             
             // Register new connection
             case c:= <-h.register:
-                log.Print("Registered...")
                 h.connections[c] = true
 
             // Unregister connection
@@ -53,7 +52,6 @@ func (h *hub) Run(){
             // is full unregister and close websocket connection 
             case m:= <-h.broadcast:
                 for c:= range h.connections {
-                    log.Println("sending message to", c.conn.RemoteAddr())
                     select {
                         case c.send <- m:
                         default:
@@ -79,13 +77,11 @@ type connection struct {
 
 func (c *connection) reader(h *hub) {
     for {
-        log.Print("INCOMFING")
         var message [1000]byte
         n, err := c.conn.Read(message[:])
         if err != nil{
             break
         }
-        log.Print("Got message", message)
         h.broadcast <- string(message[:n])
     }
     c.conn.Close()
@@ -94,7 +90,6 @@ func (c *connection) reader(h *hub) {
 
 func (c *connection) writer(h *hub) {
     for message := range c.send{
-        log.Print("Sending message: ", message)
         err := websocket.Message.Send(c.conn, message)
         if err != nil {
             break
@@ -103,9 +98,7 @@ func (c *connection) writer(h *hub) {
 }
 
 func (s *WSServer) connHandler(conn *websocket.Conn){
-    log.Print("conn..")
     s.Conn = &connection{send: make(chan string, 256), conn: conn}
-    log.Print("c:", s.Conn)
     s.Hub.register <- s.Conn
     defer func() {
         s.Hub.unregister <- s.Conn
@@ -133,7 +126,6 @@ func New (ip, port string) (s *WSServer) {
     }
 
 
-    // s.Server = new(http.Server) 
     s.Server = &http.Server{
         Addr: ip+port,
         Handler: websocket.Handler(s.connHandler),

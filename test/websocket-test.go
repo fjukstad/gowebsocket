@@ -8,11 +8,6 @@ import (
     "strconv"
 )
 
-type Message struct {
-    T string `json:"type"`
-    Content string `json:"content`
-}
-
 func main() {
     
     // cmd line flags

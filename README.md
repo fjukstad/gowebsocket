@@ -5,5 +5,5 @@ Simple server handling communication over web sockets.
 
 
 # Credits
-Implementation is heavily based on [http://gary.beagledreams.com/page/go-websocket-chat.html]. 
+Implementation is heavily based on http://gary.beagledreams.com/page/go-websocket-chat.html. 
 

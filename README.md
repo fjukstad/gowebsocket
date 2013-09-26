@@ -1,5 +1,5 @@
 # gowebsocket
-Simple server handling communication over web sockets. 
+Simple server (and client) handling communication over web sockets. Messages are broadcasted over websockets. 
 
 # How to use it
 

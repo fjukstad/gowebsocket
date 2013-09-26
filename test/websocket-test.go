@@ -8,6 +8,7 @@ import (
     "strconv"
 )
 
+// Usage example
 func main() {
     
     // cmd line flags
@@ -15,10 +16,12 @@ func main() {
     var port = flag.String("port", ":3999" ,"port to run on")
     flag.Parse() 
     
+    // Start Server
     server := gowebsocket.New(*ip, *port)
     server.Start() 
 
 
+    // Start a single client which sends and receives messages 
     c := gowebsocket.NewClient(*ip, *port) 
     i := 0
     for {

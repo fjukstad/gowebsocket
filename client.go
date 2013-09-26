@@ -28,12 +28,15 @@ func NewClient(ip, port string) (c *Client) {
 
 func (c *Client) Send (message string) {
     msg := []byte(message)
-
-    if _, err := c.Conn.Write(msg); err != nil {
-        log.Panic("Message", msg," could not be sent", err)
-    }
+    c.SendBytes(msg) 
 }
 
+func (c *client) SendBytes(message []byte) {
+    if _, err := c.Conn.Write(message); err != nil {
+        log.Panic("Message", message," could not be sent", err)
+    }
+
+}
 func (c *Client) Receive() string {
     
     var incoming = make([]byte, 512)

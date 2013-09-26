@@ -21,11 +21,11 @@ c := gowebsocket.NewClient(ip,port)
 - Messages can be sent/received by using _.Send()_ and _.Receive()_ methods: 
 
 ``` go
-for {
-  c.Send("Hello there\n")
-  recv := c.Receive()
-  fmt.Println("Received: ", recv)
-}
+
+c.Send("Hello there\n")
+recv := c.Receive()
+fmt.Println("Received: ", recv)
+
 ```
 
 See _test/websocket-test.go_ for more info! 

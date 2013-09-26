@@ -33,7 +33,9 @@ var h = hub {
 }
 
 
-func (h *hub) run(){
+
+
+func (h *hub) Run(){
     for {
         select {
             // Register new connection
@@ -106,14 +108,57 @@ func connHandler(conn *websocket.Conn){
 }
 
 
+type Server struct {
+    Hub *hub
+    Server *http.Server
+}
+
+func New (ip, port string) (s *Server) {
+    s = new(Server) 
+    s.Hub  =  &hub {
+        connections:    make(map[*connection] bool),
+        broadcast:      make(chan string),
+        register:       make(chan *connection),
+        unregister:     make(chan *connection),
+    }
+    // s.Server = new(http.Server) 
+    s.Server = &http.Server{
+        Addr: ip+port,
+        Handler: websocket.Handler(connHandler),
+    }
+
+    
+    return s
+}
+
+func (s *Server) Start() {
+    go s.Hub.Run() 
+
+    go func () {
+        err := s.Server.ListenAndServe();
+        if err != nil {
+            log.Panic("Websocket server could not start") 
+        }
+    }() 
+    log.Print("Websocket server started successfully. Go have fun! ") 
+}
+
+
+
+/*
 func Start(ip, port string) {
     address := ip+port
+    
     go h.run() 
     http.Handle("/", websocket.Handler(connHandler))
     if err := http.ListenAndServe(address, nil); err != nil{
         log.Panic("gowebsocket could not start: ", err)
     }
+
 }
+*/
+
+
 
 /*
 func main() {

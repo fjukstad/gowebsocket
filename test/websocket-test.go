@@ -2,9 +2,13 @@ package main
 
 import (
     "github.com/fjukstad/gowebsocket"
-    "log"
     "flag"
 )
+
+type Client struct {
+
+}
+
 
 func main() {
     
@@ -13,7 +17,11 @@ func main() {
     var port = flag.String("port", ":3999" ,"port to run on")
     flag.Parse() 
     
-    gowebsocket.Start(*ip, *port)
+    server := gowebsocket.New(*ip, *port)
+    server.Start() 
 
-    log.Print("Started websocket man") 
+
+
+
+    
 }

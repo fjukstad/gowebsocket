@@ -4,6 +4,7 @@ import (
     "log"
     "code.google.com/p/go.net/websocket"
     "net"
+	"time"
 )    
 
 type Client struct {
@@ -11,19 +12,24 @@ type Client struct {
     Listener net.Listener
 }
 
-func NewClient(ip, port string) (c *Client) {
+func NewClient(ip, port string) (c *Client, err error) {
     c = new(Client) 
     address := "ws://"+ip+port
     origin := "http://"+ip
-    
-    var err error
-    c.Conn, err = websocket.Dial(address, "ws", origin) 
-    
-    if err != nil {
-        log.Panic("ws dial:", err)
-    }
 
-    return c
+	var retryAttempts int = 0;
+	for {
+		c.Conn, err = websocket.Dial(address, "ws", origin)
+		if err != nil {
+			if retryAttempts == 10 {
+				return nil, err
+			}
+			retryAttempts++;
+			time.Sleep( 125 * time.Millisecond )
+		}
+		break
+	}
+    return c, nil;
 }
 
 func (c *Client) Send (message string) {

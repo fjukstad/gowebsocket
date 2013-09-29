@@ -3,16 +3,9 @@
 package gowebsocket
 
 import (
-<<<<<<< HEAD
-    "code.google.com/p/go.net/websocket"
-    "log"
-    "net/http"
-    "time"
-=======
 	"code.google.com/p/go.net/websocket"
 	"log"
 	"net/http"
->>>>>>> 7e197148b88cab4129b0e362cb863c252e242f46
 )
 
 type hub struct {

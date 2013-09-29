@@ -7,6 +7,7 @@ import (
     "code.google.com/p/go.net/websocket"
     "log"
     "net/http"
+    "time"
 )
 
 type hub struct {
@@ -144,6 +145,9 @@ func (s *WSServer) Start() {
             log.Panic("Websocket server could not start") 
         }
     }() 
+
+    time.Sleep(2 * time.Second)
+    
     log.Print("Websocket server started successfully. Go have fun! ") 
 }
 

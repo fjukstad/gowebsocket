@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"github.com/fjukstad/gowebsocket"
+	"github.com/egraff/gowebsocket"
 	"log"
 	"strconv"
 	"time"

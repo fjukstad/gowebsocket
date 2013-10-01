@@ -90,6 +90,14 @@ func (c *connection) writer(h *hub) {
 }
 
 func (s *WSServer) connHandler(conn *websocket.Conn) {
+	/* If a handler for new connections is registered, invoke it first
+	 * so it can read to or write from the connection before we setup
+	 * broadcasting
+	 */
+	if s.ConnHandler != nil {
+		s.ConnHandler.Handler(conn)
+	}
+
 	s.Conn = &connection{send: make(chan string, 256), conn: conn}
 	s.Hub.register <- s.Conn
 	defer func() {
@@ -100,10 +108,15 @@ func (s *WSServer) connHandler(conn *websocket.Conn) {
 	s.Conn.reader(s.Hub)
 }
 
+type WSConnHandler interface {
+	Handler(conn *websocket.Conn)
+}
+
 type WSServer struct {
 	Hub    *hub
 	Server *http.Server
 	Conn   *connection
+	ConnHandler WSConnHandler
 }
 
 func New(ip, port string) (s *WSServer) {
@@ -122,6 +135,14 @@ func New(ip, port string) (s *WSServer) {
 	}
 
 	return s
+}
+
+/* connHandler is an optional connection handler that may be registered
+ * to receive new connections before they are attached to the hub.
+ * Can be nil if no connection handler is desired.
+ */
+func (s *WSServer) SetConnectionHandler(connHandler WSConnHandler) {
+	s.ConnHandler = connHandler
 }
 
 func (s *WSServer) Start() {

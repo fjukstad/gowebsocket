@@ -156,4 +156,6 @@ func (s *WSServer) Start() {
 		}
 	}()
 	log.Print("Websocket server started successfully. Go have fun! ")
+func (s *WSServer) GetServerInfo() string{
+    return s.Server.Addr
 }

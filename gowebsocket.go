@@ -41,7 +41,7 @@ func (h *hub) Run() {
 		// Unregister connection
 		case c := <-h.unregister:
 			delete(h.connections, c)
-			close(c.send)
+			//close(c.send)
 
 		// Broadcast message to all connections. If send buffer
 		// is full unregister and close websocket connection
@@ -120,16 +120,17 @@ type WSServer struct {
 }
 
 func New(ip, port string) (s *WSServer) {
+
 	s = new(WSServer)
 
-	s.Hub = &hub{
-		connections: make(map[*connection]bool),
-		broadcast:   make(chan string),
-		register:    make(chan *connection),
-		unregister:  make(chan *connection),
-	}
+	s.Hub = &hub {
+        connections: make(map[*connection]bool),
+        broadcast:  make(chan string),
+        register:   make(chan *connection),
+        unregister:  make(chan *connection),
+    }
 
-	s.Server = &http.Server{
+    s.Server = &http.Server{
 		Addr:    ip + port,
 		Handler: websocket.Handler(s.connHandler),
 	}
@@ -149,13 +150,27 @@ func (s *WSServer) Start() {
 	go s.Hub.Run()
 
 	go func() {
-		http.Handle("/ws", s.Server.Handler)
-		err := s.Server.ListenAndServe()
+        
+        log.Print("handlr:", s.Server.Handler)
+		http.Handle("/"+s.Server.Addr, s.Server.Handler)
+        err := s.Server.ListenAndServe()
+
 		if err != nil {
-			log.Panic("Websocket server could not start")
+            log.Panic("Websocket server could not start:", err)
 		}
 	}()
-	log.Print("Websocket server started successfully. Go have fun! ")
+	log.Print("Websocket server started successfully.")
+    log.Print("Server info:" , s.GetServerInfo()); 
+
+}
+
+func customHandler(h http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){
+        h.ServeHTTP(w,r)
+    })
+}
+
+
 func (s *WSServer) GetServerInfo() string{
     return s.Server.Addr
 }
